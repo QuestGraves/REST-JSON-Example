@@ -1,38 +1,57 @@
 package com.keltica.rest_json_example
 
 import android.os.Bundle
-import com.google.android.material.snackbar.Snackbar
 import androidx.appcompat.app.AppCompatActivity
-import androidx.navigation.findNavController
-import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.navigateUp
-import androidx.navigation.ui.setupActionBarWithNavController
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
+import android.widget.Button
+import android.widget.TextView
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import com.keltica.rest_json_example.databinding.ActivityMainBinding
+import com.keltica.rest_json_example.respository.Repository
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var appBarConfiguration: AppBarConfiguration
+
     private lateinit var binding: ActivityMainBinding
+    private lateinit var viewModel: MainViewModel
+    private lateinit var mUserId: TextView
+    private lateinit var mId: TextView
+    private lateinit var mTitle: TextView
+    private lateinit var mBody: TextView
+    private lateinit var mFetchButton: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        mUserId = findViewById(R.id.tv_userId)
+        mId = findViewById(R.id.tv_id)
+        mTitle = findViewById(R.id.tv_title)
+        mBody = findViewById(R.id.tv_body)
+        mFetchButton = findViewById(R.id.button_fetch)
+        //Repository
+        val repository = Repository()
+        //ViewModel
+        val viewModelFactory = MainViewModelFactory(repository)
+        viewModel = ViewModelProvider(this, viewModelFactory).get(MainViewModel::class.java)
 
-        setSupportActionBar(binding.toolbar)
+        viewModel.mResponse.observe(this, Observer {
+        mUserId.text = it.userID.toString()
+        mId.text = it.id.toString()
+        mTitle.text = it.title
+        mBody.text = it.body
+        })
 
-        val navController = findNavController(R.id.nav_host_fragment_content_main)
-        appBarConfiguration = AppBarConfiguration(navController.graph)
-        setupActionBarWithNavController(navController, appBarConfiguration)
-
-        binding.fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show()
-        }
+        mFetchButton.setOnClickListener{
+                viewModel.getPost()
+            }
     }
+
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -50,9 +69,5 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    override fun onSupportNavigateUp(): Boolean {
-        val navController = findNavController(R.id.nav_host_fragment_content_main)
-        return navController.navigateUp(appBarConfiguration)
-                || super.onSupportNavigateUp()
-    }
+
 }
